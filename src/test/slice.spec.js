@@ -3,6 +3,15 @@ describe("three.js slice geometry", function() {
 
     var geometry;
 
+    var faceVertices = function(geom) {
+        return geom.faces.map(function(face) {
+            return ['a', 'b', 'c'].map(function(key) {
+                return geom.vertices[face[key]];
+            });
+        });
+    };
+
+
     describe("a single face", function() {
 
         beforeEach(function() {
@@ -39,6 +48,26 @@ describe("three.js slice geometry", function() {
             expect(sliced.faces).toEqual(geometry.faces);
         });
 
+
+        it("sliced with whole geometry behind and touching plane", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(-1, 0, 0),
+                0
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            expect(sliced.vertices.length).toBe(0);
+            expect(sliced.faces.length).toBe(0);
+        });
+
+        it("sliced with whole geometry in front of and touching plane", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(1, 0, 0),
+                0
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            expect(sliced.vertices).toEqual(geometry.vertices);
+            expect(sliced.faces).toEqual(geometry.faces);
+        });
     });
 
 
@@ -78,6 +107,22 @@ describe("three.js slice geometry", function() {
             var sliced = sliceGeometry(geometry, plane);
             expect(sliced.vertices).toEqual(geometry.vertices);
             expect(sliced.faces).toEqual(geometry.faces);
+        });
+
+        it("sliced with one face on either side", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(1, 1, 0).normalize(),
+                -0.5
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            expect(sliced.vertices.length).toBe(3);
+            expect(faceVertices(sliced)).toEqual([
+                [
+                    new THREE.Vector3(1, 1, 0),
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(1, 0, 0)
+                ]
+            ]);
         });
     });
 });
