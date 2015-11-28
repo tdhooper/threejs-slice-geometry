@@ -148,6 +148,26 @@ describe("three.js slice geometry", function() {
             ];
             expect(faceVerticesAndNormals(sliced)).toEqual(faceVerticesAndNormals(expected));
         });
+
+        it("sliced with two vertices in front of plane", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(-1, 0, 0).normalize(),
+                0.5
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            var expected = new THREE.Geometry();
+            expected.vertices = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0.5, 0, 0),
+                new THREE.Vector3(0.5, 0.5, 0),
+                new THREE.Vector3(0, 1, 0)
+            ];
+            expected.faces = [
+                new THREE.Face3(0, 1, 2),
+                new THREE.Face3(0, 2, 3)
+            ];
+            expect(faceVerticesAndNormals(sliced)).toEqual(faceVerticesAndNormals(expected));
+        });
     });
 
 

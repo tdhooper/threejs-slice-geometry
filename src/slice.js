@@ -28,23 +28,41 @@
         var v1;
         var v2;
         var intersection;
-        var position;
+        var position1;
+        var position2;
         var sliceVertices = [];
 
         for (i = 0; i < len; i++) {
             v1 = vertices[i];
             v2 = i + 1 < len ? vertices[i + 1] : vertices[0];
             intersection = intersectPlane(v1, v2, plane);
-            position = vertexPosition(plane, v1);
-            if (position == FRONT) {
+            position1 = vertexPosition(plane, v1);
+            position2 = vertexPosition(plane, v2);
+            if (position1 == FRONT && sliceVertices.indexOf(v1) === -1) {
                 sliceVertices.push(v1);
             }
             if (intersection) {
                 sliceVertices.push(intersection);
             }
+            if (position2 == FRONT && sliceVertices.indexOf(v2) === -1) {
+                sliceVertices.push(v2);
+            }
         }
 
-        addFace(geom, sliceVertices);
+        if (sliceVertices.length > 3) {
+            addFace(geom, [
+                sliceVertices[0],
+                sliceVertices[1],
+                sliceVertices[2],
+            ]);
+            addFace(geom, [
+                sliceVertices[2],
+                sliceVertices[3],
+                sliceVertices[0],
+            ]);
+        } else {
+            addFace(geom, sliceVertices);
+        }
     };
 
     var addFace = function(geom, vertices) {
