@@ -1,4 +1,5 @@
 describe("three.js slice geometry", function() {
+    "use strict";
 
     var geometry;
 
@@ -22,7 +23,7 @@ describe("three.js slice geometry", function() {
             var plane = new THREE.Plane(
                 new THREE.Vector3(1, 0, 0),
                 -2
-            )
+            );
             var sliced = sliceGeometry(geometry, plane);
             expect(sliced.vertices.length).toBe(0);
             expect(sliced.faces.length).toBe(0);
@@ -32,13 +33,14 @@ describe("three.js slice geometry", function() {
             var plane = new THREE.Plane(
                 new THREE.Vector3(1, 0, 0),
                 2
-            )
+            );
             var sliced = sliceGeometry(geometry, plane);
             expect(sliced.vertices).toEqual(geometry.vertices);
             expect(sliced.faces).toEqual(geometry.faces);
         });
 
     });
+
 
     describe("two faces", function() {
 
@@ -62,7 +64,7 @@ describe("three.js slice geometry", function() {
             var plane = new THREE.Plane(
                 new THREE.Vector3(1, 0, 0),
                 -2
-            )
+            );
             var sliced = sliceGeometry(geometry, plane);
             expect(sliced.vertices.length).toBe(0);
             expect(sliced.faces.length).toBe(0);
@@ -72,11 +74,10 @@ describe("three.js slice geometry", function() {
             var plane = new THREE.Plane(
                 new THREE.Vector3(1, 0, 0),
                 2
-            )
+            );
             var sliced = sliceGeometry(geometry, plane);
             expect(sliced.vertices).toEqual(geometry.vertices);
             expect(sliced.faces).toEqual(geometry.faces);
         });
-
     });
 });

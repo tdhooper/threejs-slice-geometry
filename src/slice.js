@@ -1,4 +1,5 @@
 (function() {
+    "use strict";
 
     var FRONT = 'front';
     var BACK = 'back';
@@ -47,7 +48,7 @@
         return ['a', 'b', 'c'].map(function(key) {
             return geom.vertices[face[key]];
         });
-    }
+    };
 
     var facePosition = function(plane, vertices) {
         var position = FRONT;
@@ -59,4 +60,4 @@
         return position;
     };
 
-})()
+})();

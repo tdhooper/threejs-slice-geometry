@@ -7,12 +7,18 @@ module.exports = function(grunt) {
       slice: {
         src: 'src/*.js',
         options: {
-          specs: 'src/*test/*.js',
+          specs: 'src/**test/*.js',
           vendor: 'node_modules/three.js/build/three.js'
         }
       }
+    },
+    jshint: {
+      all: ['src/**/*.js']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+
+  grunt.registerTask('default', ['jasmine', 'jshint']);
 };
