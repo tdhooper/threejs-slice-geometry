@@ -11,9 +11,15 @@ describe("three.js slice geometry", function() {
         });
     };
 
+    var lerpNormals = function(face, a, b, alpha) {
+        var v1 = face.vertexNormals[a];
+        var v2 = face.vertexNormals[b];
+        return v1.clone().lerp(v2, alpha).normalize();
+    };
+
     var faceVerticesAndNormals = function(geom) {
         var geomCopy = geom.clone();
-        var vertices;
+        var points;
         geomCopy.computeFaceNormals();
         var compareArray = function(a, b) {
             for (var i = 0; i < a.length; i++) {
@@ -23,12 +29,18 @@ describe("three.js slice geometry", function() {
             }
             return 0;
         };
+        var comparePoints = function(a, b) {
+            return compareArray(a.vertex, b.vertex);
+        };
         return geomCopy.faces.map(function(face) {
-            vertices = ['a', 'b', 'c'].map(function(key) {
-                return geomCopy.vertices[face[key]].toArray();
-            }).sort(compareArray);
+            points = ['a', 'b', 'c'].map(function(key, i) {
+                return {
+                    vertex: geomCopy.vertices[face[key]].toArray(),
+                    normal: face.vertexNormals[i].toArray()
+                };
+            }).sort(comparePoints);
             return {
-                vertices: vertices,
+                points: points,
                 normal: face.normal.toArray()
             };
         }).sort();
@@ -86,8 +98,14 @@ describe("three.js slice geometry", function() {
                 new THREE.Vector3(0, 1, 0)
             ];
 
+            var normals = [
+                new THREE.Vector3(0, 0, 1).normalize(),
+                new THREE.Vector3(1, 0, 1).normalize(),
+                new THREE.Vector3(0, 1, 1).normalize()
+            ];
+
             geometry.faces = [
-                new THREE.Face3(0, 1, 2)
+                new THREE.Face3(0, 1, 2, normals)
             ];
         });
 
@@ -143,8 +161,13 @@ describe("three.js slice geometry", function() {
                 new THREE.Vector3(1, 0, 0),
                 new THREE.Vector3(0.5, 0.5, 0)
             ];
+            var normals = [
+                lerpNormals(geometry.faces[0], 0, 1, 0.5),
+                new THREE.Vector3(1, 0, 1).normalize(),
+                lerpNormals(geometry.faces[0], 1, 2, 0.5)
+            ];
             expected.faces = [
-                new THREE.Face3(0, 1, 2)
+                new THREE.Face3(0, 1, 2, normals)
             ];
             expect(faceVerticesAndNormals(sliced)).toEqual(faceVerticesAndNormals(expected));
         });
@@ -162,9 +185,20 @@ describe("three.js slice geometry", function() {
                 new THREE.Vector3(0.5, 0.5, 0),
                 new THREE.Vector3(0, 1, 0)
             ];
+            var normals = [
+                [
+                    new THREE.Vector3(0, 0, 1).normalize(),
+                    lerpNormals(geometry.faces[0], 0, 1, 0.5),
+                    lerpNormals(geometry.faces[0], 1, 2, 0.5)
+                ],[
+                    new THREE.Vector3(0, 0, 1).normalize(),
+                    lerpNormals(geometry.faces[0], 1, 2, 0.5),
+                    new THREE.Vector3(0, 1, 1).normalize()
+                ]
+            ];
             expected.faces = [
-                new THREE.Face3(0, 1, 2),
-                new THREE.Face3(0, 2, 3)
+                new THREE.Face3(0, 1, 2, normals[0]),
+                new THREE.Face3(0, 2, 3, normals[1])
             ];
             expect(faceVerticesAndNormals(sliced)).toEqual(faceVerticesAndNormals(expected));
         });
@@ -183,9 +217,21 @@ describe("three.js slice geometry", function() {
                 new THREE.Vector3(1, 1, 0)
             ];
 
+            var normals = [
+                [
+                    new THREE.Vector3(0, 0, 1).normalize(),
+                    new THREE.Vector3(1, 0, 1).normalize(),
+                    new THREE.Vector3(0, 1, 1).normalize()
+                ],[
+                    new THREE.Vector3(1, 1, 1).normalize(),
+                    new THREE.Vector3(0, 1, 1).normalize(),
+                    new THREE.Vector3(1, 0, 1).normalize()
+                ]
+            ];
+
             geometry.faces = [
-                new THREE.Face3(0, 1, 2),
-                new THREE.Face3(3, 2, 1)
+                new THREE.Face3(0, 1, 2, normals[0]),
+                new THREE.Face3(3, 2, 1, normals[1])
             ];
         });
 
@@ -221,8 +267,13 @@ describe("three.js slice geometry", function() {
                 new THREE.Vector3(0, 1, 0),
                 new THREE.Vector3(1, 0, 0)
             ];
+            var normals = [
+                new THREE.Vector3(1, 1, 1).normalize(),
+                new THREE.Vector3(0, 1, 1).normalize(),
+                new THREE.Vector3(1, 0, 1).normalize()
+            ];
             expected.faces = [
-                new THREE.Face3(0, 1, 2)
+                new THREE.Face3(0, 1, 2, normals)
             ];
             expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
         });
