@@ -3,6 +3,8 @@
 
     var FRONT = 'front';
     var BACK = 'back';
+    var STRADDLE = 'straddle';
+    var ON = 'on';
 
     window.sliceGeometry = function(geom, plane) {
         var sliced = new THREE.Geometry();
@@ -13,9 +15,36 @@
             position = facePosition(plane, vertices);
             if (position == FRONT) {
                 addFace(sliced, vertices);
+            } else if (position == STRADDLE) {
+                sliceFace(plane, sliced, vertices);
             }
         });
         return sliced;
+    };
+
+    var sliceFace = function(plane, geom, vertices) {
+        var i;
+        var len = vertices.length;
+        var v1;
+        var v2;
+        var intersection;
+        var position;
+        var sliceVertices = [];
+
+        for (i = 0; i < len; i++) {
+            v1 = vertices[i];
+            v2 = i + 1 < len ? vertices[i + 1] : vertices[0];
+            intersection = intersectPlane(v1, v2, plane);
+            position = vertexPosition(plane, v1);
+            if (position == FRONT) {
+                sliceVertices.push(v1);
+            }
+            if (intersection) {
+                sliceVertices.push(intersection);
+            }
+        }
+
+        addFace(geom, sliceVertices);
     };
 
     var addFace = function(geom, vertices) {
@@ -50,14 +79,39 @@
         });
     };
 
+    var intersectPlane = function(v1, v2, plane) {
+        var line = new THREE.Line3(v1, v2);
+        return plane.intersectLine(line);
+    };
+
     var facePosition = function(plane, vertices) {
-        var position = FRONT;
-        vertices.forEach(function(vertex) {
-            if (plane.distanceToPoint(vertex) < 0) {
-                position = BACK;
+        var a = vertexPosition(plane, vertices[0]);
+        var b = vertexPosition(plane, vertices[1]);
+        var c = vertexPosition(plane, vertices[2]);
+        if (a == BACK || b == BACK || c == BACK) {
+            if (a == FRONT || b == FRONT || c == FRONT) {
+                return STRADDLE;
             }
-        });
-        return position;
+            return BACK;
+        }
+        if (a == FRONT || b == FRONT || c == FRONT) {
+            if (a == BACK || b == BACK || c == BACK) {
+                return STRADDLE;
+            }
+            return FRONT;
+        }
+        return ON;
+    };
+
+    var vertexPosition = function(plane, vertex) {
+        var distance = plane.distanceToPoint(vertex);
+        if (distance < 0) {
+            return BACK;
+        }
+        if (distance > 0) {
+            return FRONT;
+        }
+        return ON;
     };
 
 })();
