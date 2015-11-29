@@ -10,8 +10,8 @@
         var sliced = new THREE.Geometry();
         var points;
         var position;
-        geom.faces.forEach(function(face) {
-            points = facePoints(geom, face);
+        geom.faces.forEach(function(face, faceIndex) {
+            points = facePoints(geom, face, faceIndex);
             position = facePosition(plane, points);
             if (position == FRONT) {
                 addFace(sliced, points);
@@ -71,6 +71,7 @@
         var indexOffset = geom.vertices.length;
         var exists;
         var normals = [];
+        var uvs = [];
 
         points.forEach(function(point) {
             existingIndex = geom.vertices.indexOf(point.vertex);
@@ -84,6 +85,9 @@
             if (point.normal) {
                 normals.push(point.normal);
             }
+            if (point.uv) {
+                uvs.push(point.uv);
+            }
             return ! exists;
         });
 
@@ -94,13 +98,16 @@
             normals
         );
         geom.faces.push(face);
+        geom.faceVertexUvs[0].push(uvs);
     };
 
-    var facePoints = function(geom, face) {
+    var facePoints = function(geom, face, faceIndex) {
+        var uvs = geom.faceVertexUvs[0];
         return ['a', 'b', 'c'].map(function(key, i) {
             return {
                 vertex: geom.vertices[face[key]],
-                normal: face.vertexNormals[i]
+                normal: face.vertexNormals[i],
+                uv: uvs[faceIndex] ? uvs[faceIndex][i] : undefined,
             };
         });
     };
@@ -111,12 +118,10 @@
         if (intersection) {
             var distance = p1.vertex.distanceTo(intersection);
             var alpha = distance / line.distance();
-            var n = p1.normal.clone().lerp(p2.normal, alpha).normalize();
-            // console.log(p1.normal.toArray(), p2.normal.toArray(), alpha);
-            // console.log(n.toArray());
             return {
                 vertex: intersection,
-                normal: n
+                normal: p1.normal.clone().lerp(p2.normal, alpha).normalize(),
+                uv: p1.uv && p2.uv ? p1.uv.clone().lerp(p2.uv, alpha) : null
             };
         }
     };
