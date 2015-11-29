@@ -98,7 +98,9 @@
             normals
         );
         geom.faces.push(face);
-        geom.faceVertexUvs[0].push(uvs);
+        if (uvs.length) {
+            geom.faceVertexUvs[0].push(uvs);
+        }
     };
 
     var facePoints = function(geom, face, faceIndex) {

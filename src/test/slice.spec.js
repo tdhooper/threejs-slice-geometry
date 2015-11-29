@@ -329,4 +329,32 @@ describe("three.js slice geometry", function() {
             expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
         });
     });
+
+   describe("bare minimum geometry", function() {
+
+        beforeEach(function() {
+            geometry = new THREE.Geometry();
+
+            geometry.vertices = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(0, 1, 0)
+            ];
+
+            geometry.faces = [
+                new THREE.Face3(0, 1, 2)
+            ];
+        });
+
+        it("sliced with whole geometry in front of plane", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(1, 0, 0),
+                2
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            expect(sliced.vertices).toEqual(geometry.vertices);
+            expect(sliced.faces).toEqual(geometry.faces);
+            expect(sliced.faceVertexUvs).toEqual(geometry.faceVertexUvs);
+        });
+    });
 });
