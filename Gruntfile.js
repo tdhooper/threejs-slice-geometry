@@ -14,11 +14,26 @@ module.exports = function(grunt) {
     },
     jshint: {
       all: ['src/**/*.js']
+    },
+    copy: {
+      slice: {
+        src: 'src/slice.js',
+        dest: 'build/slice.<%= pkg.version %>.js'
+      }
+    },
+    uglify: {
+      slice: {
+        src: 'src/slice.js',
+        dest: 'build/slice.<%= pkg.version %>.min.js'
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 
-  grunt.registerTask('default', ['jasmine', 'jshint']);
+  grunt.registerTask('test', ['jasmine', 'jshint']);
+  grunt.registerTask('build', ['copy', 'uglify']);
 };
