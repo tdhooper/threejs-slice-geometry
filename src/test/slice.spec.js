@@ -234,6 +234,17 @@ describe("three.js slice geometry", function() {
             ];
             expect(faceVerticesAndNormals(sliced)).toEqual(faceVerticesAndNormals(expected));
         });
+
+        it("sliced with all vertices touching plane", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(0, 0, 1),
+                0
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            expect(sliced.vertices).toEqual(geometry.vertices);
+            expect(sliced.faces).toEqual(geometry.faces);
+            expect(sliced.faceVertexUvs).toEqual(geometry.faceVertexUvs);
+        });
     });
 
 
@@ -330,7 +341,8 @@ describe("three.js slice geometry", function() {
         });
     });
 
-   describe("bare minimum geometry", function() {
+
+    describe("bare minimum geometry", function() {
 
         beforeEach(function() {
             geometry = new THREE.Geometry();

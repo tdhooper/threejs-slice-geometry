@@ -13,7 +13,7 @@
         geom.faces.forEach(function(face, faceIndex) {
             points = facePoints(geom, face, faceIndex);
             position = facePosition(plane, points);
-            if (position == FRONT) {
+            if (position == FRONT || position == ON) {
                 addFace(sliced, points);
             } else if (position == STRADDLE) {
                 sliceFace(plane, sliced, points);
