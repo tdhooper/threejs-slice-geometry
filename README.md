@@ -1,6 +1,6 @@
 # Three.js Slice Geometry
 
-Slice a three.js geometry with a plane
+Slice three.js geometry with a plane.
 
 ## Usage
 
