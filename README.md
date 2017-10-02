@@ -15,8 +15,8 @@ scene.add(mesh);
 
 ## Builds
 
-* http://tdhooper.github.io/threejs-slice-geometry/build/slice.0.1.0.js
-* http://tdhooper.github.io/threejs-slice-geometry/build/slice.0.1.0.min.js
+* http://tdhooper.github.io/threejs-slice-geometry/build/slice.js
+* http://tdhooper.github.io/threejs-slice-geometry/build/slice.min.js
 
 
 ## Examples
