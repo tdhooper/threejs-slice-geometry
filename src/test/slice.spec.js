@@ -1,3 +1,6 @@
+var THREE = require('three');
+var sliceGeometry = require('../slice.js')(THREE);
+
 describe("three.js slice geometry", function() {
     "use strict";
 

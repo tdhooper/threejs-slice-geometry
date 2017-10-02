@@ -1,4 +1,4 @@
-(function() {
+module.exports = function(THREE) {
     "use strict";
 
     var FRONT = 'front';
@@ -6,7 +6,7 @@
     var STRADDLE = 'straddle';
     var ON = 'on';
 
-    window.sliceGeometry = function(geom, plane) {
+    var sliceGeometry = function(geom, plane) {
         var sliced = new THREE.Geometry();
         var points;
         var position;
@@ -158,4 +158,5 @@
         return ON;
     };
 
-})();
+    return sliceGeometry;
+};
