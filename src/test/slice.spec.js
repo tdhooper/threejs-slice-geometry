@@ -65,6 +65,7 @@ describe("three.js slice geometry", function() {
                                 equal = Math.abs(expected[property] - actual[property]) < (Math.pow(10, -precision) / 2);
                                 if ( ! equal) {
                                     result = "Expected " + actual[property] + " to be close to " + expected[property];
+                                    result += "\n" + expected + ' : ' + actual
                                 }
                             }
                             if (result !== true) {
@@ -253,6 +254,17 @@ describe("three.js slice geometry", function() {
 
     describe("two faces", function() {
 
+        /*
+
+          2  _______  3
+            |⟍      |
+            |  ⟍    |
+            |    ⟍  |
+            |______⟍|
+          0           1
+
+        */
+
         beforeEach(function() {
             geometry = new THREE.Geometry();
 
@@ -314,6 +326,19 @@ describe("three.js slice geometry", function() {
         });
 
         it("sliced with one face on either side", function() {
+
+            /*
+
+              2  _______  0
+                 ⟍      |
+                   ⟍    |
+                     ⟍  |
+                       ⟍|
+                          1
+
+            */
+
+
             var plane = new THREE.Plane(
                 new THREE.Vector3(1, 1, 0).normalize(),
                 Math.sqrt(2) / -2
@@ -342,8 +367,79 @@ describe("three.js slice geometry", function() {
             ];
             expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
         });
-    });
 
+        it("sliced through both faces", function() {
+
+            /*
+
+              3  ___2____ 4
+                |  ⟋ ⟍  |
+                |⟋_____⟍|
+              0           1
+
+            */
+
+            var plane = new THREE.Plane(
+                new THREE.Vector3(0, -1, 0).normalize(),
+                .5
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            var expected = new THREE.Geometry();
+            expected.vertices = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(.5, .5, 0),
+                new THREE.Vector3(0, .5, 0),
+                new THREE.Vector3(1, .5, 0)
+            ];
+            var normals = [
+                [
+                    new THREE.Vector3(0, 0, 1).normalize(),
+                    new THREE.Vector3(1, 0, 1).normalize(),
+                    new THREE.Vector3(.5, .5, 1).normalize()
+                ],[
+                    new THREE.Vector3(0, 0, 1).normalize(),
+                    new THREE.Vector3(.5, .5, 1).normalize(),
+                    (
+                        new THREE.Vector3(0, 0, 1).normalize().lerp(
+                            new THREE.Vector3(0, 1, 1).normalize(),
+                            .5
+                        ).normalize()
+                    )
+                ],[
+                    new THREE.Vector3(1, 0, 1).normalize(),
+                    (
+                        new THREE.Vector3(1, 0, 1).normalize().lerp(
+                            new THREE.Vector3(1, 1, 1).normalize(),
+                            .5
+                        ).normalize()
+                    ),
+                    new THREE.Vector3(.5, .5, 1).normalize()
+                ]
+            ];
+            expected.faces = [
+                new THREE.Face3(0, 1, 2, normals[0]),
+                new THREE.Face3(0, 2, 3, normals[1]),
+                new THREE.Face3(1, 4, 2, normals[2])
+            ];
+            expected.faceVertexUvs[0] = [
+                [
+                    new THREE.Vector2(0, 0),
+                    new THREE.Vector2(1, 0),
+                    new THREE.Vector2(.5, .5)
+                ],[
+                    new THREE.Vector2(0, 0),
+                    new THREE.Vector2(.5, .5),
+                    new THREE.Vector2(0, .5)
+                ],[
+                    new THREE.Vector2(1, 0),
+                    new THREE.Vector2(1, .5),
+                    new THREE.Vector2(.5, .5)
+                ]
+            ];
+            expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+        });
+    });
 
     describe("bare minimum geometry", function() {
 
