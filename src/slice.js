@@ -75,6 +75,20 @@ module.exports = function(THREE) {
         return sliced;
     };
 
+    var distanceAsPosition = function(distance) {
+        if (distance < 0) {
+            return BACK;
+        }
+        if (distance > 0) {
+            return FRONT;
+        }
+        return ON;
+    };
+
+    var findDistance = function(vertex, plane) {
+        return plane.distanceToPoint(vertex);
+    };
+
     var GeometryBuilder = function(sourceGeometry, targetGeometry) {
         this.sourceGeometry = sourceGeometry;
         this.targetGeometry = targetGeometry;
@@ -106,32 +120,6 @@ module.exports = function(THREE) {
         } else {
             this.addFacePart(0, 1, 2);
         }
-    };
-
-    GeometryBuilder.prototype.addFacePart = function(a, b, c) {
-        var normals = null;
-        if (this.faceNormals.length) {
-            normals = [
-                this.faceNormals[a],
-                this.faceNormals[b],
-                this.faceNormals[c],
-            ];
-        }
-        var face = new THREE.Face3(
-            this.faceIndicies[a],
-            this.faceIndicies[b],
-            this.faceIndicies[c],
-            normals
-        );
-        this.targetGeometry.faces.push(face);
-        if ( ! this.sourceFaceUvs) {
-            return;
-        }
-        this.targetGeometry.faceVertexUvs[0].push([
-            this.faceUvs[a],
-            this.faceUvs[b],
-            this.faceUvs[c]
-        ]);
     };
 
     GeometryBuilder.prototype.addVertex = function(key) {
@@ -217,8 +205,30 @@ module.exports = function(THREE) {
         this.faceNormals.push(normal);
     };
 
-    GeometryBuilder.prototype.intersectionId = function(indexA, indexB) {
-        return [indexA, indexB].sort().join(',');
+    GeometryBuilder.prototype.addFacePart = function(a, b, c) {
+        var normals = null;
+        if (this.faceNormals.length) {
+            normals = [
+                this.faceNormals[a],
+                this.faceNormals[b],
+                this.faceNormals[c],
+            ];
+        }
+        var face = new THREE.Face3(
+            this.faceIndicies[a],
+            this.faceIndicies[b],
+            this.faceIndicies[c],
+            normals
+        );
+        this.targetGeometry.faces.push(face);
+        if ( ! this.sourceFaceUvs) {
+            return;
+        }
+        this.targetGeometry.faceVertexUvs[0].push([
+            this.faceUvs[a],
+            this.faceUvs[b],
+            this.faceUvs[c]
+        ]);
     };
 
     GeometryBuilder.prototype.faceEdgeLength = function(a, b) {
@@ -229,22 +239,12 @@ module.exports = function(THREE) {
         return vertexA.distanceToSquared(vertexB);
     };
 
+    GeometryBuilder.prototype.intersectionId = function(indexA, indexB) {
+        return [indexA, indexB].sort().join(',');
+    };
+
     GeometryBuilder.prototype.keyIndex = function(key) {
         return FACE_KEYS.indexOf(key);
-    };
-
-    var distanceAsPosition = function(distance) {
-        if (distance < 0) {
-            return BACK;
-        }
-        if (distance > 0) {
-            return FRONT;
-        }
-        return ON;
-    };
-
-    var findDistance = function(vertex, plane) {
-        return plane.distanceToPoint(vertex);
     };
 
     return sliceGeometry;
