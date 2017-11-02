@@ -438,6 +438,7 @@ describe("three.js slice geometry", function() {
                 ]
             ];
             expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            expect(sliced.vertices.length).toBe(5);
         });
     });
 
