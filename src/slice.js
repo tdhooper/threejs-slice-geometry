@@ -5,6 +5,8 @@ module.exports = function(THREE) {
     var BACK = 'back';
     var ON = 'on';
 
+    var FACE_KEYS = ['a', 'b', 'c'];
+
     var sliceGeometry = function(geom, plane) {
         var sliced = new THREE.Geometry();
         var modifier = new GeometryModifier(geom, sliced);
@@ -21,7 +23,7 @@ module.exports = function(THREE) {
 
         geom.faces.forEach(function(face, faceIndex) {
 
-            var facePositions = ['a', 'b', 'c'].map(function(key) {
+            var facePositions = FACE_KEYS.map(function(key) {
                 return positions[face[key]];
             });
 
@@ -34,12 +36,12 @@ module.exports = function(THREE) {
 
             modifier.startFace(faceIndex);
 
-            var lastKey = 'c';
+            var lastKey = FACE_KEYS[FACE_KEYS.length - 1];
             var lastIndex = face[lastKey];
             var lastDistance = distances[lastIndex];
             var lastPosition = positions[lastIndex];
 
-            ['a', 'b', 'c'].map(function(key) {
+            FACE_KEYS.map(function(key) {
                 var index = face[key];
                 var distance = distances[index];
                 var position = positions[index];
@@ -177,7 +179,7 @@ module.exports = function(THREE) {
         if ( ! this.sourceFaceUvs) {
             return;
         }
-        var index = ['a', 'b', 'c'].indexOf(key);
+        var index = this.keyIndex(key);
         var uv = this.sourceFaceUvs[index];
         this.faceUvs.push(uv);
     };
@@ -186,8 +188,8 @@ module.exports = function(THREE) {
         if ( ! this.sourceFaceUvs) {
             return;
         }
-        var indexA = ['a', 'b', 'c'].indexOf(keyA);
-        var indexB = ['a', 'b', 'c'].indexOf(keyB);
+        var indexA = this.keyIndex(keyA);
+        var indexB = this.keyIndex(keyB);
         var uvA = this.sourceFaceUvs[indexA];
         var uvB = this.sourceFaceUvs[indexB];
         var uv = uvA.clone().lerp(uvB, t);
@@ -198,7 +200,7 @@ module.exports = function(THREE) {
         if ( ! this.sourceFace.vertexNormals.length) {
             return;
         }
-        var index = ['a', 'b', 'c'].indexOf(key);
+        var index = this.keyIndex(key);
         var normal = this.sourceFace.vertexNormals[index];
         this.faceNormals.push(normal);
     };
@@ -207,8 +209,8 @@ module.exports = function(THREE) {
         if ( ! this.sourceFace.vertexNormals.length) {
             return;
         }
-        var indexA = ['a', 'b', 'c'].indexOf(keyA);
-        var indexB = ['a', 'b', 'c'].indexOf(keyB);
+        var indexA = this.keyIndex(keyA);
+        var indexB = this.keyIndex(keyB);
         var normalA = this.sourceFace.vertexNormals[indexA];
         var normalB = this.sourceFace.vertexNormals[indexB];
         var normal = normalA.clone().lerp(normalB, t).normalize();
@@ -225,6 +227,10 @@ module.exports = function(THREE) {
         var vertexA = this.targetGeometry.vertices[indexA];
         var vertexB = this.targetGeometry.vertices[indexB];
         return vertexA.distanceToSquared(vertexB);
+    };
+
+    GeometryModifier.prototype.keyIndex = function(key) {
+        return FACE_KEYS.indexOf(key);
     };
 
     var distanceAsPosition = function(distance) {
