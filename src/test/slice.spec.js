@@ -38,11 +38,10 @@ describe("three.js slice geometry", function() {
         };
         return geomCopy.faces.map(function(face, faceIndex) {
             points = ['a', 'b', 'c'].map(function(key, i) {
-                return {
-                    vertex: geomCopy.vertices[face[key]].toArray(),
-                    normal: face.vertexNormals[i].toArray(),
-                    uv: uvs[faceIndex] ? uvs[faceIndex][i] : null,
-                };
+                var o = {};
+                o.vertex = geomCopy.vertices[face[key]].toArray();
+                o.normal = face.vertexNormals[i] ? face.vertexNormals[i].toArray() : null;
+                o.uv = uvs[faceIndex] ? uvs[faceIndex][i] : null;
             }).sort(comparePoints);
             return {
                 points: points,
@@ -59,10 +58,13 @@ describe("three.js slice geometry", function() {
                     var equal;
                     for (var property in actual) {
                         if (actual.hasOwnProperty(property)) {
-                            if (typeof actual[property] == "object") {
+                            if (typeof expected[property] == "object") {
                                 result = iterate(actual[property], expected[property], precision);
+                            } else if (typeof expected[property] != "number") {
+                                result = expected[property] === actual[property];
                             } else {
                                 equal = Math.abs(expected[property] - actual[property]) < (Math.pow(10, -precision) / 2);
+                                
                                 if ( ! equal) {
                                     result = "Expected " + actual[property] + " to be close to " + expected[property];
                                     result += "\n" + expected + ' : ' + actual
@@ -467,6 +469,50 @@ describe("three.js slice geometry", function() {
             expect(sliced.vertices).toEqual(geometry.vertices);
             expect(sliced.faces).toEqual(geometry.faces);
             expect(sliced.faceVertexUvs).toEqual(geometry.faceVertexUvs);
+        });
+    });
+
+    describe("closed geometry", function() {
+
+        beforeEach(function() {
+            geometry = new THREE.Geometry();
+
+            geometry.vertices = [
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(0, 1, 0),
+                new THREE.Vector3(0, 0, 1),
+            ];
+
+            geometry.faces = [
+                new THREE.Face3(0, 2, 1),
+                new THREE.Face3(0, 3, 2),
+                new THREE.Face3(1, 2, 3),
+                new THREE.Face3(0, 1, 3),
+            ];
+        });
+
+        it("sliced with one vertex in front of plane", function() {
+            
+            var plane = new THREE.Plane().setFromCoplanarPoints(
+                new THREE.Vector3(.5, 0, 0),
+                new THREE.Vector3(.5, .5, 0),
+                new THREE.Vector3(.5, 0, .5)
+            );
+            var sliced = sliceGeometry(geometry, plane);
+            var expected = new THREE.Geometry();
+            expected.vertices = [
+                new THREE.Vector3(.5, 0, 0),
+                new THREE.Vector3(1, 0, 0),
+                new THREE.Vector3(.5, .5, 0),
+                new THREE.Vector3(.5, 0, .5)
+            ];
+            expected.faces = [
+                new THREE.Face3(0, 2, 1),
+                new THREE.Face3(1, 2, 3),
+                new THREE.Face3(0, 1, 3)
+            ];
+            expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
         });
     });
 });

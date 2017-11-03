@@ -94,6 +94,7 @@ module.exports = function(THREE) {
         this.targetGeometry = targetGeometry;
         this.addedVertices = [];
         this.addedIntersections = [];
+        this.chains = [[]];
     };
 
     GeometryBuilder.prototype.startFace = function(sourceFaceIndex) {
@@ -245,6 +246,16 @@ module.exports = function(THREE) {
 
     GeometryBuilder.prototype.keyIndex = function(key) {
         return FACE_KEYS.indexOf(key);
+    };
+
+    GeometryBuilder.prototype.updateChain = function(index) {
+        var chainIndex = this.chains.length - 1;
+        var chain = this.chains[chainIndex];
+        if (chain.length < 2) {
+            chain.push(index);
+        } else {
+            this.chains.push([index]);
+        }
     };
 
     return sliceGeometry;
