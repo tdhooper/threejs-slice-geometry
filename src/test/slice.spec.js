@@ -1,6 +1,6 @@
 var THREE = require('three');
 var sliceGeometry = require('../slice.js')(THREE);
-var joinEdges = require('../join-edges.js');
+var facesFromEdges = require('../faces-from-edges.js');
 
 
 describe("three.js slice geometry", function() {
@@ -497,7 +497,7 @@ describe("three.js slice geometry", function() {
         describe("sliced with one vertex in front of plane", function() {
 
             it("without closing holes", function() {
-                
+
                 var plane = new THREE.Plane().setFromCoplanarPoints(
                     new THREE.Vector3(.5, 0, 0),
                     new THREE.Vector3(.5, .5, 0),
@@ -520,7 +520,7 @@ describe("three.js slice geometry", function() {
             });
 
             it("with closing holes", function() {
-                
+
                 var plane = new THREE.Plane().setFromCoplanarPoints(
                     new THREE.Vector3(.5, 0, 0),
                     new THREE.Vector3(.5, .5, 0),
@@ -545,19 +545,34 @@ describe("three.js slice geometry", function() {
         });
     });
 
-    describe("join edges", function() {
+    describe("faces from edges", function() {
 
         it('joins edges into a sequence', function() {
             var edges = [
                 [0,1],
                 [1,2],
-                [2,3]
+                [2,3],
+                [3,0]
             ];
             var expected = [
-                [[0,1],[1,2],[2,3]]
+                [3,0,1,2]
             ];
-            var chains = joinEdges(edges);
-            expect(chains).toEqual(expected);
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
+        });
+
+        it('copes with unordered edges', function() {
+            var edges = [
+                [0,1],
+                [2,0],
+                [3,2],
+                [1,3]
+            ];
+            var expected = [
+                [1,3,2,0]
+            ];
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
         });
 
         it('copes with isolated edges', function() {
@@ -565,60 +580,76 @@ describe("three.js slice geometry", function() {
                 [0,1],
                 [8,9],
                 [1,2],
-                [2,3]
+                [2,3],
+                [3,0]
             ];
             var expected = [
-                [[0,1],[1,2],[2,3]],
-                [[8,9]]
+                [3,0,1,2]
             ];
-            var chains = joinEdges(edges);
-            expect(chains).toEqual(expected);
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
+        });
+
+        it('ignores incomplete faces', function() {
+            var edges = [
+                [0,1],
+                [1,2],
+                [2,3]
+            ];
+            var expected = [];
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
         });
 
         it('copes with reversed edges', function() {
             var edges = [
                 [1,0],
                 [2,1],
-                [2,3]
+                [2,3],
+                [0,3]
             ];
             var expected = [
-                [[3,2],[2,1],[1,0]]
+                [0,3,2,1]
             ];
-            var chains = joinEdges(edges);
-            expect(chains).toEqual(expected);
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
         });
 
-        it('copes with multiple chains', function() {
+        it('copes with multiple faces', function() {
             var edges = [
                 [23,24],
+                [24,22],
                 [0,1],
                 [8,9],
                 [1,2],
                 [2,3],
+                [3,0],
                 [9,10],
                 [22,23],
-                [10,11]
+                [10,11],
+                [11,8]
             ];
             var expected = [
-                [[22,23],[23,24]],
-                [[0,1],[1,2],[2,3]],
-                [[8,9],[9,10],[10,11]]
+                [22,23,24],
+                [3,0,1,2],
+                [11,8,9,10]
             ];
-            var chains = joinEdges(edges);
-            expect(chains).toEqual(expected);
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
         });
 
         it('copes with gaps in indicies', function() {
             var edges = [
                 [0,11],
                 [11,22],
-                [22,33]
+                [22,33],
+                [33,0],
             ];
             var expected = [
-                [[0,11],[11,22],[22,33]]
+                [33,0,11,22]
             ];
-            var chains = joinEdges(edges);
-            expect(chains).toEqual(expected);
+            var faces = facesFromEdges(edges);
+            expect(faces).toEqual(expected);
         });
     });
 });

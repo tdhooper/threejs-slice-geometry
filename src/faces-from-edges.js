@@ -1,4 +1,14 @@
 
+function facesFromEdges(edges) {
+    var chains = joinEdges(edges).filter(validFace);
+    var faces = chains.map(function(chain) {
+        return chain.map(function(edge) {
+            return edge[0];
+        });
+    });
+    return faces;
+}
+
 function joinEdges(edges) {
     changes = true;
     var chains = edges.map(function(edge) {
@@ -72,4 +82,8 @@ function reverseChain(chain) {
     });
 }
 
-module.exports = joinEdges;
+function validFace(chain) {
+    return chainStart(chain) === chainEnd(chain) ? 1 : 0;
+}
+
+module.exports = facesFromEdges;
