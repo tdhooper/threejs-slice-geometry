@@ -44,6 +44,7 @@ describe("three.js slice geometry", function() {
                 o.vertex = geomCopy.vertices[face[key]].toArray();
                 o.normal = face.vertexNormals[i] ? face.vertexNormals[i].toArray() : null;
                 o.uv = uvs[faceIndex] ? uvs[faceIndex][i] : null;
+                return o;
             }).sort(comparePoints);
             return {
                 points: points,
@@ -68,8 +69,8 @@ describe("three.js slice geometry", function() {
                                 equal = Math.abs(expected[property] - actual[property]) < (Math.pow(10, -precision) / 2);
                                 
                                 if ( ! equal) {
-                                    result = "Expected " + actual[property] + " to be close to " + expected[property];
-                                    result += "\n" + expected + ' : ' + actual
+                                    result = "Expected " + actual[property] + ", but got " + expected[property];
+                                    result += "\n" + expected + ' : ' + actual;
                                 }
                             }
                             if (result !== true) {
@@ -83,9 +84,15 @@ describe("three.js slice geometry", function() {
                     compare: function(actual, expected, precision) {
                         var result = iterate(actual, expected, precision);
                         if (result !== true) {
+                            var message = result;
+                            message += '\n\nExpected:\n\n';
+                            message += JSON.stringify(expected, null, '\t');
+                            message += '\n\nActual:\n\n';
+                            message += JSON.stringify(actual, null, '\t');
+                            message += '\n\n';
                             return {
                                 pass: false,
-                                message: result
+                                message: message
                             };
                         }
                         return {
@@ -539,6 +546,68 @@ describe("three.js slice geometry", function() {
                     new THREE.Face3(1, 2, 3),
                     new THREE.Face3(0, 1, 3),
                     new THREE.Face3(0, 3, 2)
+                ];
+                expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            });
+        });
+
+        describe("sliced with three vertices in front of plane", function() {
+
+            it("without closing holes", function() {
+
+                var plane = new THREE.Plane().setFromCoplanarPoints(
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                );
+                var sliced = sliceGeometry(geometry, plane);
+                var expected = new THREE.Geometry();
+                expected.vertices = [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(.5, 0, .5)
+                ];
+                expected.faces = [
+                    new THREE.Face3(0, 3, 2),
+                    new THREE.Face3(0, 2, 1),
+                    new THREE.Face3(0, 4, 3),
+                    new THREE.Face3(3, 4, 2),
+                    new THREE.Face3(2, 4, 5),
+                    new THREE.Face3(0, 1, 5),
+                    new THREE.Face3(0, 5, 4)
+                ];
+                expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            });
+
+            it("with closing holes", function() {
+
+                var plane = new THREE.Plane().setFromCoplanarPoints(
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                );
+                var sliced = sliceGeometry(geometry, plane, true);
+                var expected = new THREE.Geometry();
+                expected.vertices = [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(0, 1, 0),
+                    new THREE.Vector3(0, 0, 1),
+                    new THREE.Vector3(.5, 0, .5)
+                ];
+                expected.faces = [
+                    new THREE.Face3(0, 3, 2),
+                    new THREE.Face3(0, 2, 1),
+                    new THREE.Face3(0, 4, 3),
+                    new THREE.Face3(3, 4, 2),
+                    new THREE.Face3(2, 4, 5),
+                    new THREE.Face3(0, 1, 5),
+                    new THREE.Face3(0, 5, 4),
+                    new THREE.Face3(1, 2, 5)
                 ];
                 expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
             });
