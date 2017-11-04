@@ -1,5 +1,7 @@
 var THREE = require('three');
 var sliceGeometry = require('../slice.js')(THREE);
+var joinEdges = require('../join-edges.js');
+
 
 describe("three.js slice geometry", function() {
     "use strict";
@@ -56,8 +58,8 @@ describe("three.js slice geometry", function() {
                 var iterate = function(actual, expected, precision) {
                     var result = true;
                     var equal;
-                    for (var property in actual) {
-                        if (actual.hasOwnProperty(property)) {
+                    for (var property in expected) {
+                        if (expected.hasOwnProperty(property)) {
                             if (typeof expected[property] == "object") {
                                 result = iterate(actual[property], expected[property], precision);
                             } else if (typeof expected[property] != "number") {
@@ -492,27 +494,131 @@ describe("three.js slice geometry", function() {
             ];
         });
 
-        it("sliced with one vertex in front of plane", function() {
-            
-            var plane = new THREE.Plane().setFromCoplanarPoints(
-                new THREE.Vector3(.5, 0, 0),
-                new THREE.Vector3(.5, .5, 0),
-                new THREE.Vector3(.5, 0, .5)
-            );
-            var sliced = sliceGeometry(geometry, plane);
-            var expected = new THREE.Geometry();
-            expected.vertices = [
-                new THREE.Vector3(.5, 0, 0),
-                new THREE.Vector3(1, 0, 0),
-                new THREE.Vector3(.5, .5, 0),
-                new THREE.Vector3(.5, 0, .5)
+        describe("sliced with one vertex in front of plane", function() {
+
+            it("without closing holes", function() {
+                
+                var plane = new THREE.Plane().setFromCoplanarPoints(
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                );
+                var sliced = sliceGeometry(geometry, plane);
+                var expected = new THREE.Geometry();
+                expected.vertices = [
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(1, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                ];
+                expected.faces = [
+                    new THREE.Face3(0, 2, 1),
+                    new THREE.Face3(1, 2, 3),
+                    new THREE.Face3(0, 1, 3)
+                ];
+                expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            });
+
+            it("with closing holes", function() {
+                
+                var plane = new THREE.Plane().setFromCoplanarPoints(
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                );
+                var sliced = sliceGeometry(geometry, plane, true);
+                var expected = new THREE.Geometry();
+                expected.vertices = [
+                    new THREE.Vector3(.5, 0, 0),
+                    new THREE.Vector3(1, 0, 0),
+                    new THREE.Vector3(.5, .5, 0),
+                    new THREE.Vector3(.5, 0, .5)
+                ];
+                expected.faces = [
+                    new THREE.Face3(0, 2, 1),
+                    new THREE.Face3(1, 2, 3),
+                    new THREE.Face3(0, 1, 3),
+                    new THREE.Face3(0, 3, 2)
+                ];
+                expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            });
+        });
+    });
+
+    describe("join edges", function() {
+
+        it('joins edges into a sequence', function() {
+            var edges = [
+                [0,1],
+                [1,2],
+                [2,3]
             ];
-            expected.faces = [
-                new THREE.Face3(0, 2, 1),
-                new THREE.Face3(1, 2, 3),
-                new THREE.Face3(0, 1, 3)
+            var expected = [
+                [[0,1],[1,2],[2,3]]
             ];
-            expect(faceVerticesAndNormals(sliced)).objectToBeCloseTo(faceVerticesAndNormals(expected), 2);
+            var chains = joinEdges(edges);
+            expect(chains).toEqual(expected);
+        });
+
+        it('copes with isolated edges', function() {
+            var edges = [
+                [0,1],
+                [8,9],
+                [1,2],
+                [2,3]
+            ];
+            var expected = [
+                [[0,1],[1,2],[2,3]],
+                [[8,9]]
+            ];
+            var chains = joinEdges(edges);
+            expect(chains).toEqual(expected);
+        });
+
+        it('copes with reversed edges', function() {
+            var edges = [
+                [1,0],
+                [2,1],
+                [2,3]
+            ];
+            var expected = [
+                [[3,2],[2,1],[1,0]]
+            ];
+            var chains = joinEdges(edges);
+            expect(chains).toEqual(expected);
+        });
+
+        it('copes with multiple chains', function() {
+            var edges = [
+                [23,24],
+                [0,1],
+                [8,9],
+                [1,2],
+                [2,3],
+                [9,10],
+                [22,23],
+                [10,11]
+            ];
+            var expected = [
+                [[22,23],[23,24]],
+                [[0,1],[1,2],[2,3]],
+                [[8,9],[9,10],[10,11]]
+            ];
+            var chains = joinEdges(edges);
+            expect(chains).toEqual(expected);
+        });
+
+        it('copes with gaps in indicies', function() {
+            var edges = [
+                [0,11],
+                [11,22],
+                [22,33]
+            ];
+            var expected = [
+                [[0,11],[11,22],[22,33]]
+            ];
+            var chains = joinEdges(edges);
+            expect(chains).toEqual(expected);
         });
     });
 });
