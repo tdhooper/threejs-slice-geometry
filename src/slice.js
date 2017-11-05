@@ -110,40 +110,28 @@ module.exports = function(THREE) {
         this.sourceFace = this.sourceGeometry.faces[sourceFaceIndex];
         this.sourceFaceUvs = this.sourceGeometry.faceVertexUvs[0][sourceFaceIndex];
 
-        this.faceIndicies = [];
+        this.faceIndices = [];
         this.faceNormals = [];
         this.faceUvs = [];
     };
 
     GeometryBuilder.prototype.endFace = function() {
-        if (this.faceIndicies.length > 3) {
-            var lengthA = this.faceEdgeLength(0, 2);
-            var lengthB = this.faceEdgeLength(1, 3);
-            if (lengthA < lengthB) {
-                this.addFacePart(0, 1, 2);
-                this.addFacePart(0, 2, 3);
-            } else {
-                this.addFacePart(1, 2, 3);
-                this.addFacePart(0, 1, 3);
-            }
-        } else {
-            this.addFacePart(0, 1, 2);
-        }
+        var indices = this.faceIndices.map(function(index, i) {
+            return i;
+        });
+        this.addFace(indices);
     };
 
     GeometryBuilder.prototype.closeHoles = function() {
         facesFromEdges(this.newEdges)
-            .forEach(function(faceIndicies) {
-                var normal = this.faceNormal(faceIndicies);
+            .forEach(function(faceIndices) {
+                var normal = this.faceNormal(faceIndices);
                 if (normal.dot(this.slicePlane.normal) > .5) {
-                    faceIndicies.reverse();
+                    faceIndices.reverse();
                 }
-                var face = new THREE.Face3(
-                    faceIndicies[0],
-                    faceIndicies[1],
-                    faceIndicies[2]
-                );
-                this.targetGeometry.faces.push(face);
+                this.startFace();
+                this.faceIndices = faceIndices;
+                this.endFace();
             }, this);
     };
 
@@ -162,7 +150,7 @@ module.exports = function(THREE) {
             newIndex = this.targetGeometry.vertices.length - 1;
             this.addedVertices[index] = newIndex;
         }
-        this.faceIndicies.push(newIndex);
+        this.faceIndices.push(newIndex);
     };
 
     GeometryBuilder.prototype.addIntersection = function(keyA, keyB, distanceA, distanceB) {
@@ -185,7 +173,7 @@ module.exports = function(THREE) {
             index = this.targetGeometry.vertices.length - 1;
             this.addedIntersections[id] = index;
         }
-        this.faceIndicies.push(index);
+        this.faceIndices.push(index);
         this.updateNewEdges(index);
     };
 
@@ -231,6 +219,39 @@ module.exports = function(THREE) {
         this.faceNormals.push(normal);
     };
 
+    GeometryBuilder.prototype.addFace = function(indices) {
+        if (indices.length === 3) {
+            this.addFacePart(indices[0], indices[1], indices[2]);
+            return;
+        }
+
+        var pairs = [];
+        for (var i = 0; i < indices.length; i++) {
+            for (var j = i + 1; j < indices.length; j++) {
+                var diff = Math.abs(i - j);
+                if (diff > 1 && diff < indices.length - 1) {
+                    pairs.push([indices[i], indices[j]]);
+                }
+            }
+        }
+
+        pairs.sort(function(pairA, pairB) {
+            var lengthA = this.faceEdgeLength(pairA[0], pairA[1]);
+            var lengthB = this.faceEdgeLength(pairB[0], pairB[1]);
+            return lengthA - lengthB;
+        }.bind(this));
+
+        var a = indices.indexOf(pairs[0][0]);
+        indices = indices.slice(a).concat(indices.slice(0, a));
+
+        var b = indices.indexOf(pairs[0][1]);
+        var indicesA = indices.slice(0, b + 1);
+        var indicesB = indices.slice(b).concat(indices.slice(0, 1));
+
+        this.addFace(indicesA);
+        this.addFace(indicesB);
+    };
+
     GeometryBuilder.prototype.addFacePart = function(a, b, c) {
         var normals = null;
         if (this.faceNormals.length) {
@@ -241,9 +262,9 @@ module.exports = function(THREE) {
             ];
         }
         var face = new THREE.Face3(
-            this.faceIndicies[a],
-            this.faceIndicies[b],
-            this.faceIndicies[c],
+            this.faceIndices[a],
+            this.faceIndices[b],
+            this.faceIndices[c],
             normals
         );
         this.targetGeometry.faces.push(face);
@@ -258,8 +279,8 @@ module.exports = function(THREE) {
     };
 
     GeometryBuilder.prototype.faceEdgeLength = function(a, b) {
-        var indexA = this.faceIndicies[a];
-        var indexB = this.faceIndicies[b];
+        var indexA = this.faceIndices[a];
+        var indexB = this.faceIndices[b];
         var vertexA = this.targetGeometry.vertices[indexA];
         var vertexB = this.targetGeometry.vertices[indexB];
         return vertexA.distanceToSquared(vertexB);
@@ -283,8 +304,8 @@ module.exports = function(THREE) {
         }
     };
 
-    GeometryBuilder.prototype.faceNormal = function(faceIndicies) {
-        var vertices = faceIndicies.map(function(index) {
+    GeometryBuilder.prototype.faceNormal = function(faceIndices) {
+        var vertices = faceIndices.map(function(index) {
             return this.targetGeometry.vertices[index];
         }.bind(this));
         var edgeA = vertices[0].clone().sub(vertices[1]);
