@@ -1,6 +1,6 @@
 {
   "name": "threejs-slice-geometry",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "src/slice.js",
   "devDependencies": {
     "three.js": "^0.73.0",
