@@ -481,6 +481,17 @@ describe("three.js slice geometry", function() {
             expect(sliced.faces).toEqual(geometry.faces);
             expect(sliced.faceVertexUvs).toEqual(geometry.faceVertexUvs);
         });
+
+        it("sliced with whole geometry in front of plane, with closing holes", function() {
+            var plane = new THREE.Plane(
+                new THREE.Vector3(1, 0, 0),
+                2
+            );
+            var sliced = sliceGeometry(geometry, plane, true);
+            expect(sliced.vertices).toEqual(geometry.vertices);
+            expect(sliced.faces).toEqual(geometry.faces);
+            expect(sliced.faceVertexUvs).toEqual(geometry.faceVertexUvs);
+        });
     });
 
     describe("closed geometry", function() {

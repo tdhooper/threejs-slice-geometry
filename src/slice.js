@@ -123,6 +123,9 @@ module.exports = function(THREE) {
     };
 
     GeometryBuilder.prototype.closeHoles = function() {
+        if ( ! this.newEdges[0].length) {
+            return;
+        }
         facesFromEdges(this.newEdges)
             .forEach(function(faceIndices) {
                 var normal = this.faceNormal(faceIndices);
