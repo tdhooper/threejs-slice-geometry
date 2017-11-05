@@ -21,4 +21,4 @@ scene.add(mesh);
 
 ## Examples
 
-http://codepen.io/tdhooper/pen/epqNgN
+https://tdhooper.github.io/threejs-slice-geometry/examples
