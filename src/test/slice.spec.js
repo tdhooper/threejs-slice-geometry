@@ -738,10 +738,10 @@ describe("three.js slice geometry", function() {
                 [3,0]
             ];
             var expected = [
-                [3,0,1,2]
+                [0,1,2,3]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
 
         it('copes with unordered edges', function() {
@@ -755,7 +755,7 @@ describe("three.js slice geometry", function() {
                 [1,3,2,0]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
 
         it('copes with isolated edges', function() {
@@ -770,7 +770,7 @@ describe("three.js slice geometry", function() {
                 [3,0,1,2]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
 
         it('ignores incomplete faces', function() {
@@ -781,7 +781,7 @@ describe("three.js slice geometry", function() {
             ];
             var expected = [];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
 
         it('copes with reversed edges', function() {
@@ -795,7 +795,7 @@ describe("three.js slice geometry", function() {
                 [0,3,2,1]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
 
         it('copes with multiple faces', function() {
@@ -818,7 +818,7 @@ describe("three.js slice geometry", function() {
                 [11,8,9,10]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces).sort()).toEqual(edgesFromFaces(expected).sort());
         });
 
         it('copes with gaps in indicies', function() {
@@ -832,7 +832,18 @@ describe("three.js slice geometry", function() {
                 [33,0,11,22]
             ];
             var faces = facesFromEdges(edges);
-            expect(faces).toEqual(expected);
+            expect(edgesFromFaces(faces)).toEqual(edgesFromFaces(expected));
         });
+
+        // Convert face into a set of edges for comparison
+        function edgesFromFaces(faces) {
+            return faces.map(function(face) {
+                return face.map(function(_, i) {
+                    var pointA = face[i];
+                    var pointB = face[(i + 1) % face.length];
+                    return [pointA, pointB].sort().toString();
+                }).sort();
+            }).sort();
+        }
     });
 });
