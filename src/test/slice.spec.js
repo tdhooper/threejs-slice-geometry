@@ -38,7 +38,7 @@ describe("three.js slice geometry", function() {
         var comparePoints = function(a, b) {
             return compareArray(a.vertex, b.vertex);
         };
-        return geomCopy.faces.map(function(face, faceIndex) {
+        var faces = geomCopy.faces.map(function(face, faceIndex) {
             points = ['a', 'b', 'c'].map(function(key, i) {
                 var o = {};
                 o.vertex = geomCopy.vertices[face[key]].toArray();
@@ -50,7 +50,19 @@ describe("three.js slice geometry", function() {
                 points: points,
                 normal: face.normal.toArray()
             };
-        }).sort();
+        });
+        faces = faces.sort(function(faceA, faceB) {
+            faceA = JSON.stringify(faceA.points);
+            faceB = JSON.stringify(faceB.points);
+            if (faceA < faceB) {
+                return -1;
+            }
+            if (faceA > faceB) {
+                return 1;
+            }
+            return 0;
+        });
+        return faces;
     };
 
     beforeEach(function() {
