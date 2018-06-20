@@ -30,6 +30,8 @@ module.exports = function(THREE) {
                 return positions[face[key]];
             });
 
+            // Discard faces completely behind the cutting plane,
+            // but preserve faces lying flat on the plane
             if (
                 facePositions.indexOf(FRONT) === -1 &&
                 facePositions.indexOf(BACK) !== -1
@@ -38,6 +40,10 @@ module.exports = function(THREE) {
             }
 
             builder.startFace(faceIndex);
+
+            // Walk around the face, adding vertices that are in
+            // front of the cutting plane, and creating new vertices
+            // when an edge intersects
 
             var lastKey = FACE_KEYS[FACE_KEYS.length - 1];
             var lastIndex = face[lastKey];
@@ -141,7 +147,17 @@ module.exports = function(THREE) {
     GeometryBuilder.prototype.addVertex = function(key) {
         this.addUv(key);
         this.addNormal(key);
+        this._addVertex(key);
+    };
 
+    GeometryBuilder.prototype.addIntersection = function(keyA, keyB, distanceA, distanceB) {
+        var t = Math.abs(distanceA) / (Math.abs(distanceA) + Math.abs(distanceB));
+        this.addIntersectionUv(keyA, keyB, t);
+        this.addIntersectionNormal(keyA, keyB, t);
+        this.addIntersectionVertex(keyA, keyB, t);
+    };
+
+    GeometryBuilder.prototype._addVertex = function(key) {
         var index = this.sourceFace[key];
         var newIndex;
 
@@ -156,11 +172,7 @@ module.exports = function(THREE) {
         this.faceIndices.push(newIndex);
     };
 
-    GeometryBuilder.prototype.addIntersection = function(keyA, keyB, distanceA, distanceB) {
-        var t = Math.abs(distanceA) / (Math.abs(distanceA) + Math.abs(distanceB));
-        this.addIntersectionUv(keyA, keyB, t);
-        this.addIntersectionNormal(keyA, keyB, t);
-
+    GeometryBuilder.prototype.addIntersectionVertex = function(keyA, keyB, t) {
         var indexA = this.sourceFace[keyA];
         var indexB = this.sourceFace[keyB];
         var id = this.intersectionId(indexA, indexB);
