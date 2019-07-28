@@ -48,22 +48,23 @@ module.exports = function(THREE) {
                 var index = face[key];
                 var distance = distances[index];
                 var position = positions[index];
+                var color = geometry.colors[index];
                 
                 if (position === FRONT) {
                     if (lastPosition === BACK) {
-                        builder.addIntersection(lastKey, key, lastDistance, distance);
-                        builder.addVertex(key);
+                        builder.addIntersection(lastKey, key, color, lastDistance, distance);
+                        builder.addVertex(key, color);
                     } else {
-                        builder.addVertex(key);
+                        builder.addVertex(key, color);
                     }
                 }
 
                 if (position === ON) {
-                    builder.addVertex(key);
+                    builder.addVertex(key, color);
                 }
 
                 if (position === BACK && lastPosition === FRONT) {
-                    builder.addIntersection(lastKey, key, lastDistance, distance);
+                    builder.addIntersection(lastKey, key, color, lastDistance, distance);
                 }
 
                 lastKey = key;
@@ -113,6 +114,7 @@ module.exports = function(THREE) {
         this.faceIndices = [];
         this.faceNormals = [];
         this.faceUvs = [];
+        this.colors = [];
     };
 
     GeometryBuilder.prototype.endFace = function() {
@@ -138,7 +140,7 @@ module.exports = function(THREE) {
             }, this);
     };
 
-    GeometryBuilder.prototype.addVertex = function(key) {
+    GeometryBuilder.prototype.addVertex = function(key, color) {
         this.addUv(key);
         this.addNormal(key);
 
@@ -154,9 +156,10 @@ module.exports = function(THREE) {
             this.addedVertices[index] = newIndex;
         }
         this.faceIndices.push(newIndex);
+        this.colors.push(color);
     };
 
-    GeometryBuilder.prototype.addIntersection = function(keyA, keyB, distanceA, distanceB) {
+    GeometryBuilder.prototype.addIntersection = function(keyA, keyB, color, distanceA, distanceB) {
         var t = Math.abs(distanceA) / (Math.abs(distanceA) + Math.abs(distanceB));
         this.addIntersectionUv(keyA, keyB, t);
         this.addIntersectionNormal(keyA, keyB, t);
@@ -177,6 +180,7 @@ module.exports = function(THREE) {
             this.addedIntersections[id] = index;
         }
         this.faceIndices.push(index);
+        this.colors.push(color);
         this.updateNewEdges(index);
     };
 
@@ -270,6 +274,11 @@ module.exports = function(THREE) {
             this.faceIndices[c],
             normals
         );
+        
+        face.vertexColors[0] = this.colors[a];
+        face.vertexColors[1] = this.colors[b];
+        face.vertexColors[2] = this.colors[c];
+        
         this.targetGeometry.faces.push(face);
         if ( ! this.sourceFaceUvs) {
             return;
